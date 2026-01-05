@@ -1,4 +1,4 @@
-package netology;
+package RefactoringMultiThreading;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -54,12 +54,14 @@ public class Server {
                 return;
             }
 
+            // Заголовок
             String path = parts[1];
             if (!VALID_PATHS.contains(path)) {
                 sendErrorResponse(out, 404, "Not Found");
                 return;
             }
 
+            // Заголовок с public
             Path filePath = Path.of(PUBLIC_DIR, path);
             String mimeType = Files.probeContentType(filePath);
 
