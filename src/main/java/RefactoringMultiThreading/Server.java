@@ -111,20 +111,24 @@ public class Server {
             // Логирование можно расширить, но для учебного проекта — тихо игнорируем
         }
     }
-
+    // Метод для отправки ошибки (только заголовки, без тела)
     private void sendErrorResponse(BufferedOutputStream out, int code, String message) {
+        // Формируем Status Line: "HTTP/1.1 404 Not Found\r\n"
         String statusLine = String.format("HTTP/1.1 %d %s\r\n", code, message);
         String response = statusLine +
                 "Content-Length: 0\r\n" +
+                // Connection: close означает, что после этого ответа TCP-соединение будет разорвано.
+                // (В лекции упоминалось, что HTTP/1.1 по умолчанию использует keep-alive,
+                // но здесь мы его принудительно закрываем для простоты).
                 "Connection: close\r\n" +
-                "\r\n";
+                "\r\n";// Пустая строка обязана отделять заголовки от тела (даже если тела нет)
         try {
             out.write(response.getBytes());
             out.flush();
         } catch (IOException ignored) {
         }
     }
-
+    // Метод для отправки полного ответа (Статус + Заголовки + Тело в виде байтов)
     private void sendResponse(BufferedOutputStream out, int code, String message, String mimeType, int contentLength, byte[] content) {
         String statusLine = String.format("HTTP/1.1 %d %s\r\n", code, message);
         String headers = statusLine +
@@ -133,13 +137,13 @@ public class Server {
                 "Connection: close\r\n" +
                 "\r\n";
         try {
-            out.write(headers.getBytes());
-            out.write(content);
-            out.flush();
+            out.write(headers.getBytes());// Сначала заголовки
+            out.write(content);// Потом тело (Body)
+            out.flush();// Принудительно выталкиваем буфер в сеть
         } catch (IOException ignored) {
         }
     }
-
+    // Метод для отправки ТОЛЬКО заголовков (используется перед стримингом файла)
     private void sendResponseHeader(BufferedOutputStream out, int code, String message, String mimeType, long contentLength) {
         String statusLine = String.format("HTTP/1.1 %d %s\r\n", code, message);
         String headers = statusLine +
